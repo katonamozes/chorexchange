@@ -1,0 +1,10 @@
+{
+  "workspaceId": "366057407909952",
+  "projectId": "3affe974-d425-4db4-a4e0-58605ed34354",
+  "appId": "69b791c9-a637-47fd-b6a8-7bf5a28d7fcf",
+  "name": "ChoreLoop",
+  "description": "A neighbor-to-neighbor chore exchange where time becomes credits. The first 1,000 members receive 100 welcome credits.",
+  "schemaAlias": "",
+  "version": 1,
+  "changelog": "It got created"
+}

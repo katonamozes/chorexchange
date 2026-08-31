@@ -1,0 +1,9 @@
+{
+  "roles": [
+    {
+      "role_key": "chore_member",
+      "name": "Chore Member",
+      "description": "Member who posts, discovers, books, and completes chore exchanges using credits."
+    }
+  ]
+}

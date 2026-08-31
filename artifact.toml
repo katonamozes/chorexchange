@@ -1,0 +1,61 @@
+# MonoApp - UNSSWE deployment configuration
+#
+# This file is parsed by the Build-Deploy service to determine build, runtime,
+# and health-check behavior.
+# Priority: app deploy_config (DB overrides) > this file > platform hardcoded defaults.
+#
+# Environment injection (automatic):
+#   DATABASE_URL  - injected into build_env / run_env by the backend per project schema
+#   PORT          - injected by RuntimeManager from localPort
+# User identity and roles are injected as trusted request headers by the Tier0
+# App Gateway.
+
+[deployment]
+deploymentTarget = "autoscale"
+
+# args contract (true argv, POSIX execve semantics — see uns-swe
+# docs/topics/artifact-args-contract.md):
+#   Every element is passed literally to the executable; no shell word-splitting or
+#   expansion. Shell semantics must be explicit: ["sh", "-c", "<script>"].
+#   The platform normalizes two legacy join-era forms to ["sh", "-c", "..."]
+#   with a warning: bare shell-operator tokens (e.g. "&&" as their own elements)
+#   and whole commands crammed into one element (e.g. ["npm prune --omit=dev"]).
+#   New files must still use the canonical argv forms shown below.
+
+[[services]]
+name = "web"
+paths = ["/"]
+localPort = 5173
+
+[services.production]
+serve = "dynamic"
+
+[services.production.build]
+# Keep production pruning in the build chain so a prune failure blocks artifact
+# publication instead of being swallowed by non-blocking cleanup semantics.
+args = ["sh", "-c", "npm ci && npm run build && npm prune --omit=dev"]
+outputDir = "."
+
+[services.production.run]
+args = ["node", "server.mjs"]
+image = "node:22-alpine"
+
+[services.production.run.env]
+NODE_ENV = "production"
+HOST = "0.0.0.0"
+
+[services.production.health.startup]
+path = "/api/health"
+timeout = 120
+
+# Live preview (dev server running inside the Executor Pod)
+[services.preview]
+install = ["npm", "install"]
+args = ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+port = 5173
+
+[services.preview.env]
+NODE_ENV = "development"
+HOST = "0.0.0.0"
+BROWSER = "none"
+VITE_ALLOWED_HOSTS = "all"
